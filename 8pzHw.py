@@ -9,6 +9,8 @@ import random
 import math
 from collections import deque
 
+import sys
+
 finishState = [[0, 1, 2],
                [3, 4, 5],
                [6, 7, 8]]
@@ -259,13 +261,17 @@ class Puzzle8:
             ## check if we are in the goal state
             if node.matrix == finishState:
 
+                ## this fixes the problem with the recursion stack since python doesn't allow a big stack.
+                sys.setrecursionlimit(1000)
                 ## gets the path by generating the solution path. and adding them to the path array
+
                 path = []
                 for child in node.generateSolutionPath([]):
                     path.append(child.direction)
                 path.reverse()
 
                 ## exporting the information gathered for the question into a txt file.
+
                 file = open('dfsoutput.txt', 'w')
                 file.writelines(f'path_to_goal: {path}\n')
                 file.writelines(f'cost_of_path: {path.__len__()}\n')
@@ -316,11 +322,11 @@ def main():
 
     p.shuffle(20) # that's why we shuffle to start from a random state which is 20 steps away from from the goal state
     # print(m)
-    # print(p)
+    print(p)
     # print(p.swap(p.find(4),p.find(3)))
 
 
-    p.change_state([1,2,5,3,4,0,6,7,8])
+    # p.change_state([1,2,5,3,4,0,6,7,8])
 
     print(p.BFS())
     print("-------")
