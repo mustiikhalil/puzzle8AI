@@ -10,7 +10,6 @@ ID: 140201100
 
 """
 WARNING DFS will have a path retrival problem if the traversal tree is bigger than 1000 nodes
-
 """
 
 import random
@@ -28,6 +27,7 @@ finishState = [[0, 1, 2],
  this implementation has a queue and a set.
  to achive a check of O(1) to the queue while keeping the data sorted.
 """
+
 class priorityQueue():
 
     # constructor
@@ -494,12 +494,11 @@ def main():
     6 8 2
     7 5 4
     """
-    p.change_state([0,3,1,6,8,2,7,5,4])
+    p.change_state([1,2,5,3,4,0,6,7,8])
     print(p)
-
     print(p.BFS())
     print("-------")
-    # print(p.DFS())
+    print(p.DFS())
     print("-------")
     print (p.Astarsearch(p.missPlacedHeuristic))
     # print(frontier)
