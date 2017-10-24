@@ -5,11 +5,11 @@ Name: Mustafa Khalil
 ID: 140201100
 
 """
+
 import random
 import math
 from collections import deque
-
-import sys
+import heapq
 
 finishState = [[0, 1, 2],
                [3, 4, 5],
@@ -18,6 +18,42 @@ finishState = [[0, 1, 2],
 # finishState = [[1, 2, 3],
 #                [4, 5, 6],
 #                [7, 8, 0]]
+
+
+
+class priorityQueue():
+
+    def __init__(self):
+        self.queue = []
+        self.set = {}
+
+    def add(self,node,heur):
+
+        if node.__str__() not in self.set:
+            self.set[node.__str__()] = True
+            self.queue.append((node,heur))
+            self.queue = sorted(self.queue, key=lambda x: x[1])
+        if node.__str__() in self.set:
+            self.update(node,heur)
+
+    def update(self, node, heur):
+        if node.__str__() in self.set:
+            indx = [x for x, y in enumerate(self.queue) if y[0] == node]
+            self.queue[indx[0]] = (node,heur)
+            self.queue = sorted(self.queue, key=lambda x: x[1])
+
+    def pop(self):
+        popped = self.queue.pop(0)
+        del self.set[popped[0].__str__()]
+        return popped
+
+    def __len__(self):
+        return self.queue.__len__()
+
+    def getH(self,node):
+        indx = [x for x, y in enumerate(self.queue) if y[0] == node]
+        return self.queue[indx[0]][1]
+
 
 def index(item, seq):
     """Helper function that returns -1 for non-found index value of a seq"""
@@ -112,6 +148,7 @@ class Puzzle8:
         if self._parent == None:
             return path
         else:
+
             path.append(self)
             return self._parent.generateSolutionPath(path)
 
@@ -164,15 +201,14 @@ class Puzzle8:
 
         ## frontier is a queue First in first out
 
-        frontier = deque()
-
+        frontier = []
         ## Explored is a dictionary to hold the explored sets since an infinite loop can accrue
         ## A dictionary was picked since we can hash the value and get a O(1) access time for it
         explored = {}
 
         ## counts the amount of nodes that are explored
         counter = 0
-
+        frontierSet = {}
         ## according to BFS algorithm we need to append the first node in the frontier to explore it later
         frontier.append(self)
 
@@ -183,22 +219,22 @@ class Puzzle8:
         while frontier.__len__() != 0:
 
             ## popping the first element in the queue
-            node = frontier.popleft()
+            node = frontier.pop(0)
             ## adding the hash node into the explored set
             explored[node.__str__()] = True
-            counter += 1
 
             ## check if we are in the goal state
             if node.matrix == finishState:
 
                 ## gets the path by generating the solution path. and adding them to the path array
                 path = []
-                for child in node.generateSolutionPath([]):
+                pathArray = node.generateSolutionPath([])
+                for child in pathArray:
                     path.append(child.direction)
                 path.reverse()
 
                 ## exporting the information gathered for the question into a txt file.
-                file = open('bfsoutput.txt', 'w')
+                file = open('output.txt', 'w')
                 file.writelines(f'path_to_goal: {path}\n')
                 file.writelines(f'cost_of_path: {path.__len__()}\n')
                 file.writelines(f'nodes_expanded: {counter}\n')
@@ -209,19 +245,22 @@ class Puzzle8:
 
             ## generate the moves that are available.
             for child in node.generateMoves():
-
                 ## checks of the node is in the explored set
-                if child.__str__() not in explored:
+
+                if child.__str__() not in explored and child.__str__() not in frontierSet:
+
+                    ## appends the available move to the frontier. so we can explore it later
+                    frontier.append(child)
+                    frontierSet[child.__str__()] = True
 
                     ## gets the depth that we are at.
                     if depth < child._depth:
                         depth = child._depth
 
-                    ## appends the available move to the frontier. so we can explore it later
-                    frontier.append(child)
+
+            counter += 1
 
         return False
-
 
     ## Depth first Search algorithm to that will solve the puzzle by
     ## Generating the moves and running through them.
@@ -261,18 +300,18 @@ class Puzzle8:
             ## check if we are in the goal state
             if node.matrix == finishState:
 
-                ## this fixes the problem with the recursion stack since python doesn't allow a big stack.
-                sys.setrecursionlimit(1000)
+
                 ## gets the path by generating the solution path. and adding them to the path array
 
                 path = []
-                for child in node.generateSolutionPath([]):
+                pathArray = node.generateSolutionPath([])
+                for child in pathArray:
                     path.append(child.direction)
                 path.reverse()
 
                 ## exporting the information gathered for the question into a txt file.
 
-                file = open('dfsoutput.txt', 'w')
+                file = open('output.txt', 'w')
                 file.writelines(f'path_to_goal: {path}\n')
                 file.writelines(f'cost_of_path: {path.__len__()}\n')
                 file.writelines(f'nodes_expanded: {counter}\n')
@@ -304,34 +343,101 @@ class Puzzle8:
 
         return False
 
-    # def heuristic(self):
+    # def h(self, node):
+    #     """Heuristic for 8 puzzle: returns sum for each tile of manhattan
+    #     distance between it's position in node's state and goal"""
+    #     sum = 0
+    #     for c in '12345678':
+    #         sum = + mhd(node.state.index(c), self.goal.index(c))
+    #     return sum
 
 
     #def Astarsearch(self, h):
-        """Performs A* search for goal state.
+
+        """Performs A* search for goal state. h(move) - heuristic function, returns an integer """
+
+
+    def missPlacedHeuristic(self,node):
+        count = 0
+        if node.isGoal():
+            return 0
+        for i in (0,2,1):
+            for j in (0,2,1):
+                if node.matrix[i][j] != finishState[i][j]:
+                    count += 1
+        return count
+
+
+    def Astarsearch(self, h):
+        frontier = priorityQueue()
+        exploredSet = {}
+        depth = 0
+        counter = 0
+        if self.isGoal():
+            print("didn't start")
+            return True
+
+        frontier.add(self, h(self))
+
+        while frontier.__len__() != 0:
+
+
+            popped = frontier.pop()
+            node = popped[0]
+            depth = node._depth
+            exploredSet[node.__str__()] = True
+            counter = counter + 1
+            if node.isGoal():
+                path = []
+                for i in node.generateSolutionPath([]):
+                    path.append(i.direction)
+                path.reverse()
+                file = open('output.txt', 'w')
+                file.writelines(f'path_to_goal: {path}\n')
+                file.writelines(f'cost_of_path: {path.__len__()}\n')
+                file.writelines(f'nodes_expanded: {counter-1}\n')
+                file.writelines(f'search_depth: {path.__len__()}\n')
+                file.writelines(f'max_search_depth: {depth}\n')
+                file.close()
+
+                return True
+            for child in node.generateMoves():
+                child._hval = h(child)
+
+                if child.__str__() not in exploredSet and child.__str__() not in frontier.set:
+                    frontier.add(child,child._hval +child._depth)
+                elif child.__str__() in frontier.set:
+                        if frontier.getH(child) > child._hval:
+                            frontier.update(child,child._hval+child._depth)
+
+        return False
+
+    """Performs A* search for goal state.        
         h(move) - heuristic function, returns an integer
-        """
-
-
-        
+     """
 
 def main():
 
     p = Puzzle8() # when we create the puzzle object, it's already in the goal state
-    m = Puzzle8()
 
-    p.shuffle(20) # that's why we shuffle to start from a random state which is 20 steps away from from the goal state
-    # print(m)
+    # print(p.missPlacedHueristic())
+    # p.shuffle(20) # that's why we shuffle to start from a random state which is 20 steps away from from the goal state
+
+    """
+    0 3 1
+    6 8 2
+    7 5 4
+    """
+
+    p.change_state([0,3,1,6,8,2,7,5,4])
     print(p)
-    # print(p.swap(p.find(4),p.find(3)))
-
-
-    # p.change_state([1,2,5,3,4,0,6,7,8])
 
     print(p.BFS())
     print("-------")
-    print(p.DFS())
+    # print(p.DFS())
     print("-------")
+    # print (p.Astarsearch(p.missPlacedHeuristic))
+    # print(frontier)
 
 
 
