@@ -1,5 +1,5 @@
-path_to_goal: ['right', 'down', 'left', 'left', 'up', 'up']
-cost_of_path: 6
-nodes_expanded: 6
-search_depth: 6
-max_search_depth: 6
+path_to_goal: ['right', 'right', 'down', 'left', 'down', 'right', 'up', 'left', 'down', 'left', 'up', 'up']
+cost_of_path: 12
+nodes_expanded: 72
+search_depth: 12
+max_search_depth: 12
