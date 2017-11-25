@@ -362,6 +362,29 @@ class Puzzle8:
             counter += 1
         return False
 
+    def DLS(self, limit):
+
+        return self.helperDLS(self, limit)
+
+    def helperDLS(self, node, limit):
+        if node.isGoal():
+            return True
+        if limit == 0:
+            return None
+        else:
+            cutOff = False
+            for move in node.generateMoves():
+                print(move)
+                result = self.helperDLS(move, limit=limit - 1)
+                if result == None:
+                    cutOff = True
+                else:
+                    return True
+            if cutOff == True:
+                return None
+            else:
+                return False
+
     ## a Heuristic function that gets the amount of missplaced tiles in the game,
     """
     0 3 1
@@ -383,31 +406,6 @@ class Puzzle8:
     """
         Astar search algorithm to be running on a very low O(n) in terms of time and space 
     """
-
-    def DLS(self,limit):
-
-        return self.helperDLS(self,limit)
-
-    def helperDLS(self,node,limit):
-        if node.isGoal():
-            return True
-        if limit == 0:
-            return None
-        else:
-            cutOff = False
-            for move in node.generateMoves():
-                print(move)
-                result = self.helperDLS(move,limit=limit-1)
-                if result == None:
-                    cutOff = True
-                else:
-                    return True
-            if cutOff == True:
-                return None
-            else:
-                return False
-
-
 
 
     def Astarsearch(self, h):
@@ -507,7 +505,7 @@ def main():
     # print(p.DFS())
     print("-------")
     # print (p.Astarsearch(p.missPlacedHeuristic))
-    print(p.DLS(5))
+    # print(p.DLS(5))
 
 if __name__ == "__main__":
     main()
