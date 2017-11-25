@@ -1,13 +1,11 @@
 # Solves a randomized 8-puzzle using A* algorithm with plug-in heuristics
 
 """
-This is an implementation for the following algorithms Astar, DFS, and BFS
-It was implemented for the AI course in Antalya Bilim University.
-
-Implemented By Mustafa Khalil.
+Name: Mustafa Khalil.
 ID: 140201100
 """
 
+import sys
 """
 WARNING DFS will have a path retrival problem if the traversal tree is bigger than 1000 nodes
 """
@@ -21,7 +19,7 @@ finishState = [[0, 1, 2],
                [3, 4, 5],
                [6, 7, 8]]
 
-
+sys.setrecursionlimit(10000)
 """
  A simple priority Queue implementation,
  this implementation has a queue and a set.
@@ -256,7 +254,7 @@ class Puzzle8:
                 path.reverse()
 
                 ## exporting the information gathered for the question into a txt file.
-                file = open('BFSoutput.txt', 'w')
+                file = open('output.txt', 'w')
                 file.writelines(f'path_to_goal: {path}\n')
                 file.writelines(f'cost_of_path: {path.__len__()}\n')
                 file.writelines(f'nodes_expanded: {counter}\n')
@@ -313,7 +311,6 @@ class Puzzle8:
 
             ## Pops the frontier first element,
             node = frontier.pop()
-            counter += 1
 
             ## checks the depth that we reached so we can write it in the txt file that is going to be exported
             if depth < node._depth:
@@ -322,7 +319,7 @@ class Puzzle8:
             ## check if we are in the goal state
             if node.matrix == finishState:
 
-
+                print(node)
                 ## gets the path by generating the solution path. and adding them to the path array
 
                 path = []
@@ -333,7 +330,7 @@ class Puzzle8:
 
                 ## exporting the information gathered for the question into a txt file.
 
-                file = open('DFSoutput.txt', 'w')
+                file = open('output.txt', 'w')
                 file.writelines(f'path_to_goal: {path}\n')
                 file.writelines(f'cost_of_path: {path.__len__()}\n')
                 file.writelines(f'nodes_expanded: {counter}\n')
@@ -362,21 +359,8 @@ class Puzzle8:
                     if child.__str__() not in exploredSet and child.__str__() not in frontierSet:
                         frontier.append(child)
                         frontierSet[child.__str__() ] = True
-
+            counter += 1
         return False
-
-    # def h(self, node):
-    #     """Heuristic for 8 puzzle: returns sum for each tile of manhattan
-    #     distance between it's position in node's state and goal"""
-    #     sum = 0
-    #     for c in '12345678':
-    #         sum = + mhd(node.state.index(c), self.goal.index(c))
-    #     return sum
-
-
-    #def Astarsearch(self, h):
-
-        """Performs A* search for goal state. h(move) - heuristic function, returns an integer """
 
     ## a Heuristic function that gets the amount of missplaced tiles in the game,
     """
@@ -399,6 +383,32 @@ class Puzzle8:
     """
         Astar search algorithm to be running on a very low O(n) in terms of time and space 
     """
+
+    def DLS(self,limit):
+
+        return self.helperDLS(self,limit)
+
+    def helperDLS(self,node,limit):
+        if node.isGoal():
+            return True
+        if limit == 0:
+            return None
+        else:
+            cutOff = False
+            for move in node.generateMoves():
+                print(move)
+                result = self.helperDLS(move,limit=limit-1)
+                if result == None:
+                    cutOff = True
+                else:
+                    return True
+            if cutOff == True:
+                return None
+            else:
+                return False
+
+
+
 
     def Astarsearch(self, h):
 
@@ -438,14 +448,14 @@ class Puzzle8:
 
             # checks if the node is goal
             if node.isGoal():
-
+                print(node)
                 path = []
                 for i in node.generateSolutionPath([]):
                     path.append(i.direction)
                 path.reverse()
 
                 # creates a file and outputs the moves, depth, length
-                file = open('Astaroutput.txt', 'w')
+                file = open('output.txt', 'w')
                 file.writelines(f'path_to_goal: {path}\n')
                 file.writelines(f'cost_of_path: {path.__len__()}\n')
                 file.writelines(f'nodes_expanded: {counter-1}\n')
@@ -471,16 +481,12 @@ class Puzzle8:
                 elif child.__str__() in frontier.set:
                     # checks if the current Heuristic value is less than the previous Heuristic value
                         if frontier.getH(child) > child._hval:
-
                             # if true, update the node with the current Heuristic
                             frontier.update(child,child._hval+child._depth)
 
         # returns false if the algorithm failed
         return False
 
-    """Performs A* search for goal state.
-        h(move) - heuristic function, returns an integer
-     """
 
 def main():
 
@@ -494,19 +500,14 @@ def main():
     6 8 2
     7 5 4
     """
-    p.change_state([1,2,5,3,4,0,6,7,8])
+    p.change_state([1,2,0,3,4,5,6,7,8])
     print(p)
-    print(p.BFS())
+    # print(p.BFS())
     print("-------")
-    print(p.DFS())
+    # print(p.DFS())
     print("-------")
-    print (p.Astarsearch(p.missPlacedHeuristic))
-    # print(frontier)
-
-
-
-
-
+    # print (p.Astarsearch(p.missPlacedHeuristic))
+    print(p.DLS(5))
 
 if __name__ == "__main__":
     main()
